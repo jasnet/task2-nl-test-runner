@@ -116,11 +116,12 @@ def main():
     if not os.getenv("ANTHROPIC_API_KEY"):
         sys.exit("Error: ANTHROPIC_API_KEY environment variable is not set.\nPlease set it via: export ANTHROPIC_API_KEY='your-key'")
     client, results = Anthropic(), []
+    (outdir / "videos").mkdir(exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=not a.headed)
         for t in tests:
             print(f"\nTEST: {t}")
-            ctx = browser.new_context(viewport={"width": 1366, "height": 900})
+            ctx = browser.new_context(viewport={"width": 1366, "height": 900}, record_video_dir=str(outdir / "videos"))
             r = run_test(ctx, client, a.url, t, outdir); ctx.close(); results.append(r)
             print(f"RESULT: {r['verdict']} - {r['reason']}")
         browser.close()
