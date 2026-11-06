@@ -118,13 +118,14 @@ class DemoClient:
             email_id = next((e["id"] for e in elements if "email" in (e.get("name","")+e.get("type","")+e.get("label","")+e.get("placeholder","")).lower()), None)
             pass_id = next((e["id"] for e in elements if "password" in (e.get("name","")+e.get("type","")+e.get("label","")+e.get("placeholder","")).lower()), None)
             btn_id = next((e["id"] for e in elements if e.get("tag") in ("button","input") and e.get("type") in ("submit","button","")), None)
-            if "fill" not in history and email_id:
+            steps = len([l for l in history.splitlines() if "->" in l])
+            if steps == 0 and email_id:
                 reply = json.dumps({"thought": "Fill customer demo email", "action": "fill", "id": email_id, "value": "user@phptravels.com"})
-            elif "password" not in history and pass_id:
+            elif steps == 1 and pass_id:
                 reply = json.dumps({"thought": "Fill customer demo password", "action": "fill", "id": pass_id, "value": "demopass"})
-            elif "click" not in history and btn_id:
+            elif steps == 2 and btn_id:
                 reply = json.dumps({"thought": "Submit login form", "action": "click", "id": btn_id, "value": ""})
-            elif "assert_" not in history:
+            elif steps == 3:
                 reply = json.dumps({"thought": "Verify dashboard welcome message", "action": "assert_text", "id": None, "value": "Welcome"})
             else:
                 reply = json.dumps({"thought": "Dashboard assertion verified successfully", "action": "finish", "id": None, "value": "pass"})
