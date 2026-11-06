@@ -103,19 +103,51 @@ def run_test(page_ctx, client, url, test, outdir, headless_log=print):
     except Exception: pass
     return {"test": test, "verdict": verdict.upper(), "reason": reason, "steps": history, "screenshot": str(shot)}
 
+class DemoClient:
+    class messages:
+        @staticmethod
+        def create(model, max_tokens, system, messages):
+            user_msg = messages[0]["content"]
+            m = re.search(r'CURRENT PAGE:\n(.*?)\n\nNext action', user_msg, re.S)
+            elements = []
+            if m:
+                try: elements = json.loads(m.group(1)).get("elements", [])
+                except Exception: pass
+            hm = re.search(r'HISTORY:\n(.*?)\n\nCURRENT PAGE', user_msg, re.S)
+            history = hm.group(1) if hm else ""
+            email_id = next((e["id"] for e in elements if "email" in (e.get("name","")+e.get("type","")+e.get("label","")+e.get("placeholder","")).lower()), None)
+            pass_id = next((e["id"] for e in elements if "password" in (e.get("name","")+e.get("type","")+e.get("label","")+e.get("placeholder","")).lower()), None)
+            btn_id = next((e["id"] for e in elements if e.get("tag") in ("button","input") and e.get("type") in ("submit","button","")), None)
+            if "fill" not in history and email_id:
+                reply = json.dumps({"thought": "Fill customer demo email", "action": "fill", "id": email_id, "value": "user@phptravels.com"})
+            elif "password" not in history and pass_id:
+                reply = json.dumps({"thought": "Fill customer demo password", "action": "fill", "id": pass_id, "value": "demopass"})
+            elif "click" not in history and btn_id:
+                reply = json.dumps({"thought": "Submit login form", "action": "click", "id": btn_id, "value": ""})
+            elif "assert_" not in history:
+                reply = json.dumps({"thought": "Verify dashboard welcome message", "action": "assert_text", "id": None, "value": "Welcome"})
+            else:
+                reply = json.dumps({"thought": "Dashboard assertion verified successfully", "action": "finish", "id": None, "value": "pass"})
+            return type("Reply", (), {"content": [type("Content", (), {"text": reply})]})()
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", help="start URL (optional if the test case names the site)")
     ap.add_argument("--test", action="append", help="plain-English test case (repeatable)")
     ap.add_argument("--file", help="text file, one test case per line")
     ap.add_argument("--headed", action="store_true")
+    ap.add_argument("--demo", action="store_true", help="run in demo mode without Anthropic API key")
     a = ap.parse_args()
     tests = (a.test or []) + ([l.strip() for l in Path(a.file).read_text().splitlines() if l.strip() and not l.startswith("#")] if a.file else [])
     if not tests: ap.error("give --test or --file")
     outdir = Path("results"); outdir.mkdir(exist_ok=True)
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        sys.exit("Error: ANTHROPIC_API_KEY environment variable is not set.\nPlease set it via: export ANTHROPIC_API_KEY='your-key'")
-    client, results = Anthropic(), []
+    if a.demo:
+        client = DemoClient()
+    elif not os.getenv("ANTHROPIC_API_KEY"):
+        sys.exit("Error: ANTHROPIC_API_KEY environment variable is not set.\nPlease set it via: export ANTHROPIC_API_KEY='your-key'\n(Or run with --demo for offline demo mode)")
+    else:
+        client = Anthropic()
+    results = []
     (outdir / "videos").mkdir(exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=not a.headed)
