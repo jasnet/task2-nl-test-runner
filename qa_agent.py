@@ -91,6 +91,7 @@ def run_test(page_ctx, client, url, test, outdir, headless_log=print):
                 break
             else: history.append(f"step {step}: unknown action {a}"); continue
             history.append(f"step {step}: {a} id={i} value={v!r} -> ok")
+            time.sleep(1)
         except Exception as e:
             err = str(e).splitlines()[0][:160]
             history.append(f"step {step}: {a} id={i} value={v!r} -> ERROR {err}")
