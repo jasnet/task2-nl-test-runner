@@ -1,0 +1,3 @@
+# one test per line; the demo login credentials are shown on the phptravels demo page
+Open the page, find the customer demo login details, log in as a customer and verify the customer dashboard is shown
+Open the page and verify a login form with email and password fields is available

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Local Demo Login</title>
+  <style>
+    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 80vh; background: #f4f6f8; }
+    .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 360px; }
+    .field { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input { width: 100%; padding: 8px; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background: #0066cc; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+    .demo-creds { background: #eef4fc; padding: 10px; border-radius: 4px; font-size: 13px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <div class="card" id="main-box">
+    <h2>Customer Portal</h2>
+    <div class="demo-creds">
+      Demo account: <strong>user@phptravels.com</strong> / <strong>demopass</strong>
+    </div>
+    <form id="login-form" onsubmit="event.preventDefault(); document.getElementById('main-box').innerHTML = '<h2>Dashboard</h2><p>Welcome to your account, Customer!</p>';">
+      <div class="field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="name@example.com" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" id="submit-btn">Login</button>
+    </form>
+  </div>
+</body>
+</html>
